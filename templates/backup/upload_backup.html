@@ -1,0 +1,162 @@
+{% extends 'base.html' %}
+
+{% block title %}Upload Backup{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-0 text-gray-800">
+                <i class="fas fa-upload text-primary me-2"></i>
+                Upload Backup
+            </h1>
+            <p class="text-muted mb-0">Import an external backup file</p>
+        </div>
+        <div>
+            <a href="{% url 'backup:backup_dashboard' %}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-1"></i>Back to Dashboard
+            </a>
+        </div>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Upload Backup File</h6>
+                </div>
+                <div class="card-body">
+                    <form method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        
+                        <div class="mb-4">
+                            <label for="backup_file" class="form-label">Backup File</label>
+                            <input type="file" class="form-control" id="backup_file" name="backup_file" 
+                                   accept=".zip,.tar,.tar.gz" required>
+                            <div class="form-text">
+                                Select a backup file (.zip, .tar, or .tar.gz). Maximum file size: 500MB.
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="notes" class="form-label">Notes (Optional)</label>
+                            <textarea class="form-control" id="notes" name="notes" rows="4" 
+                                      placeholder="Add any notes about this backup file (e.g., source, date created, purpose)..."></textarea>
+                        </div>
+
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle me-2"></i>
+                            <strong>Important:</strong>
+                            <ul class="mb-0 mt-2">
+                                <li>Only upload backup files created by this system or compatible backup tools</li>
+                                <li>Verify the backup file integrity before uploading</li>
+                                <li>Large files may take several minutes to upload</li>
+                                <li>The backup will be validated after upload</li>
+                            </ul>
+                        </div>
+
+                        <div class="d-flex justify-content-between">
+                            <a href="{% url 'backup:backup_dashboard' %}" class="btn btn-secondary">
+                                <i class="fas fa-times me-1"></i>Cancel
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-upload me-1"></i>Upload Backup
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Upload Instructions -->
+            <div class="card shadow mt-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Upload Instructions</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6 class="font-weight-bold">Supported File Types:</h6>
+                            <ul class="list-unstyled">
+                                <li><i class="fas fa-file-archive text-primary me-2"></i>.zip files</li>
+                                <li><i class="fas fa-file-archive text-primary me-2"></i>.tar files</li>
+                                <li><i class="fas fa-file-archive text-primary me-2"></i>.tar.gz files</li>
+                            </ul>
+
+                            <h6 class="font-weight-bold mt-3">File Size Limits:</h6>
+                            <ul class="list-unstyled">
+                                <li><i class="fas fa-check text-success me-2"></i>Maximum: 500MB</li>
+                                <li><i class="fas fa-info text-info me-2"></i>Recommended: Under 100MB</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="font-weight-bold">What Happens After Upload:</h6>
+                            <ol>
+                                <li>File is uploaded to secure storage</li>
+                                <li>Backup integrity is validated</li>
+                                <li>Backup record is created in the system</li>
+                                <li>You can view details and restore if needed</li>
+                            </ol>
+
+                            <h6 class="font-weight-bold mt-3">Security Notes:</h6>
+                            <ul class="list-unstyled">
+                                <li><i class="fas fa-shield-alt text-success me-2"></i>Files are stored securely</li>
+                                <li><i class="fas fa-lock text-warning me-2"></i>Admin access only</li>
+                                <li><i class="fas fa-eye text-info me-2"></i>Upload history is tracked</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    // File upload progress and validation
+    $('#backup_file').on('change', function() {
+        const file = this.files[0];
+        if (file) {
+            // Check file size (500MB = 524288000 bytes)
+            if (file.size > 524288000) {
+                alert('File size exceeds 500MB limit. Please select a smaller file.');
+                this.value = '';
+                return;
+            }
+            
+            // Check file extension
+            const allowedExtensions = ['.zip', '.tar', '.gz'];
+            const fileName = file.name.toLowerCase();
+            const isValidExtension = allowedExtensions.some(ext => fileName.endsWith(ext));
+            
+            if (!isValidExtension) {
+                alert('Invalid file type. Please select a .zip, .tar, or .tar.gz file.');
+                this.value = '';
+                return;
+            }
+            
+            // Show file info
+            const fileSize = (file.size / (1024 * 1024)).toFixed(2);
+            console.log(`Selected file: ${file.name} (${fileSize} MB)`);
+        }
+    });
+    
+    // Form submission handling
+    $('form').on('submit', function() {
+        const submitBtn = $(this).find('button[type="submit"]');
+        submitBtn.prop('disabled', true);
+        submitBtn.html('<i class="fas fa-spinner fa-spin me-1"></i>Uploading...');
+        
+        // Show progress message
+        const progressAlert = $('<div class="alert alert-info mt-3">' +
+            '<i class="fas fa-spinner fa-spin me-2"></i>' +
+            'Uploading backup file... This may take several minutes for large files.' +
+            '</div>');
+        $(this).after(progressAlert);
+    });
+});
+</script>
+{% endblock %}

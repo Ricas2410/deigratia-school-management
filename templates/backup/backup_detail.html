@@ -1,0 +1,424 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block title %}{{ backup.name }} - Backup Details{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-0 text-gray-800">
+                <i class="fas fa-info-circle text-primary me-2"></i>
+                Backup Details
+            </h1>
+            <p class="text-muted mb-0">{{ backup.name }}</p>
+        </div>
+        <div>
+            <a href="{% url 'backup:backup_list' %}" class="btn btn-outline-secondary me-2">
+                <i class="fas fa-arrow-left me-1"></i>Back to List
+            </a>
+            {% if backup.status == 'completed' and backup.file_exists %}
+            <a href="{% url 'backup:download_backup' backup.id %}" class="btn btn-success me-2">
+                <i class="fas fa-download me-1"></i>Download
+            </a>
+            <button type="button" class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#restoreModal">
+                <i class="fas fa-undo me-1"></i>Restore
+            </button>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Backup Information -->
+        <div class="col-lg-8">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Backup Information</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <table class="table table-borderless">
+                                <tr>
+                                    <td class="font-weight-bold">Name:</td>
+                                    <td>{{ backup.name }}</td>
+                                </tr>
+                                <tr>
+                                    <td class="font-weight-bold">Type:</td>
+                                    <td>
+                                        <span class="badge badge-info">{{ backup.get_backup_type_display }}</span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="font-weight-bold">Status:</td>
+                                    <td>
+                                        {% if backup.status == 'completed' %}
+                                            <span class="badge badge-success">
+                                                <i class="fas fa-check me-1"></i>Completed
+                                            </span>
+                                        {% elif backup.status == 'failed' %}
+                                            <span class="badge badge-danger">
+                                                <i class="fas fa-times me-1"></i>Failed
+                                            </span>
+                                        {% elif backup.status == 'in_progress' %}
+                                            <span class="badge badge-warning">
+                                                <i class="fas fa-spinner fa-spin me-1"></i>In Progress
+                                            </span>
+                                        {% else %}
+                                            <span class="badge badge-secondary">
+                                                <i class="fas fa-clock me-1"></i>Pending
+                                            </span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="font-weight-bold">File Size:</td>
+                                    <td>{{ backup.file_size_formatted }}</td>
+                                </tr>
+                                <tr>
+                                    <td class="font-weight-bold">Created By:</td>
+                                    <td>
+                                        {% if backup.created_by %}
+                                            {{ backup.created_by.get_full_name|default:backup.created_by.username }}
+                                        {% else %}
+                                            <span class="text-muted">System</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+                        <div class="col-md-6">
+                            <table class="table table-borderless">
+                                <tr>
+                                    <td class="font-weight-bold">Created:</td>
+                                    <td>{{ backup.created_at|date:"F d, Y H:i" }}</td>
+                                </tr>
+                                <tr>
+                                    <td class="font-weight-bold">Completed:</td>
+                                    <td>
+                                        {% if backup.completed_at %}
+                                            {{ backup.completed_at|date:"F d, Y H:i" }}
+                                        {% else %}
+                                            <span class="text-muted">-</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="font-weight-bold">Duration:</td>
+                                    <td>
+                                        {% if backup.duration %}
+                                            {{ backup.duration }}
+                                        {% else %}
+                                            <span class="text-muted">-</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="font-weight-bold">File Exists:</td>
+                                    <td>
+                                        {% if backup.file_exists %}
+                                            <span class="text-success">
+                                                <i class="fas fa-check me-1"></i>Yes
+                                            </span>
+                                        {% else %}
+                                            <span class="text-danger">
+                                                <i class="fas fa-times me-1"></i>No
+                                            </span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="font-weight-bold">File Path:</td>
+                                    <td>
+                                        {% if backup.file_path %}
+                                            <code class="small">{{ backup.file_path }}</code>
+                                        {% else %}
+                                            <span class="text-muted">-</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+
+                    {% if backup.notes %}
+                    <div class="mt-3">
+                        <h6 class="font-weight-bold">Notes:</h6>
+                        <div class="bg-light p-3 rounded">
+                            {{ backup.notes|linebreaks }}
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    {% if backup.error_message %}
+                    <div class="mt-3">
+                        <h6 class="font-weight-bold text-danger">Error Message:</h6>
+                        <div class="alert alert-danger">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            {{ backup.error_message }}
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Backup Contents -->
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Backup Contents</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="text-center p-3">
+                                <i class="fas fa-database fa-2x {% if backup.includes_database %}text-success{% else %}text-muted{% endif %} mb-2"></i>
+                                <h6>Database</h6>
+                                <span class="badge {% if backup.includes_database %}badge-success{% else %}badge-secondary{% endif %}">
+                                    {% if backup.includes_database %}Included{% else %}Not Included{% endif %}
+                                </span>
+                                {% if backup.database_records %}
+                                <div class="small text-muted mt-1">{{ backup.database_records }} records</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="text-center p-3">
+                                <i class="fas fa-images fa-2x {% if backup.includes_media %}text-success{% else %}text-muted{% endif %} mb-2"></i>
+                                <h6>Media Files</h6>
+                                <span class="badge {% if backup.includes_media %}badge-success{% else %}badge-secondary{% endif %}">
+                                    {% if backup.includes_media %}Included{% else %}Not Included{% endif %}
+                                </span>
+                                {% if backup.media_files_count %}
+                                <div class="small text-muted mt-1">{{ backup.media_files_count }} files</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="text-center p-3">
+                                <i class="fas fa-cog fa-2x {% if backup.includes_settings %}text-success{% else %}text-muted{% endif %} mb-2"></i>
+                                <h6>Settings</h6>
+                                <span class="badge {% if backup.includes_settings %}badge-success{% else %}badge-secondary{% endif %}">
+                                    {% if backup.includes_settings %}Included{% else %}Not Included{% endif %}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Restore History -->
+            {% if restores %}
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Restore History</h6>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Initiated By</th>
+                                    <th>Status</th>
+                                    <th>Duration</th>
+                                    <th>Notes</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for restore in restores %}
+                                <tr>
+                                    <td>{{ restore.initiated_at|date:"M d, Y H:i" }}</td>
+                                    <td>
+                                        {% if restore.initiated_by %}
+                                            {{ restore.initiated_by.get_full_name|default:restore.initiated_by.username }}
+                                        {% else %}
+                                            <span class="text-muted">System</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if restore.status == 'completed' %}
+                                            <span class="badge badge-success">Completed</span>
+                                        {% elif restore.status == 'failed' %}
+                                            <span class="badge badge-danger">Failed</span>
+                                        {% elif restore.status == 'in_progress' %}
+                                            <span class="badge badge-warning">In Progress</span>
+                                        {% else %}
+                                            <span class="badge badge-secondary">Pending</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if restore.duration %}
+                                            {{ restore.duration }}
+                                        {% else %}
+                                            <span class="text-muted">-</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if restore.notes %}
+                                            {{ restore.notes|truncatechars:50 }}
+                                        {% else %}
+                                            <span class="text-muted">-</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Actions & Info -->
+        <div class="col-lg-4">
+            <!-- Quick Actions -->
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Actions</h6>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        {% if backup.status == 'completed' and backup.file_exists %}
+                        <a href="{% url 'backup:download_backup' backup.id %}" class="btn btn-success">
+                            <i class="fas fa-download me-2"></i>Download Backup
+                        </a>
+                        <button type="button" class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#restoreModal">
+                            <i class="fas fa-undo me-2"></i>Restore from Backup
+                        </button>
+                        {% endif %}
+                        <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteModal">
+                            <i class="fas fa-trash me-2"></i>Delete Backup
+                        </button>
+                        <a href="{% url 'backup:backup_list' %}" class="btn btn-outline-secondary">
+                            <i class="fas fa-list me-2"></i>Back to List
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Backup Tips -->
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Backup Information</h6>
+                </div>
+                <div class="card-body">
+                    <div class="small">
+                        <div class="mb-2">
+                            <i class="fas fa-info-circle text-info me-2"></i>
+                            Backup files are stored securely and can be downloaded at any time.
+                        </div>
+                        <div class="mb-2">
+                            <i class="fas fa-shield-alt text-success me-2"></i>
+                            Full backups include all data, media files, and configuration.
+                        </div>
+                        <div class="mb-2">
+                            <i class="fas fa-clock text-warning me-2"></i>
+                            Restore operations create a safety backup before proceeding.
+                        </div>
+                        <div class="mb-0">
+                            <i class="fas fa-download text-primary me-2"></i>
+                            Download backups to store them in multiple locations.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Restore Modal -->
+{% if backup.status == 'completed' and backup.file_exists %}
+<div class="modal fade" id="restoreModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Restore from Backup</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="post" action="{% url 'backup:restore_backup' backup.id %}">
+                <div class="modal-body">
+                    {% csrf_token %}
+                    
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        <strong>Warning:</strong> This will overwrite your current data. 
+                        A backup of your current state will be created first.
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Restore Options</label>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="restore_database" name="restore_database" checked>
+                            <label class="form-check-label" for="restore_database">
+                                Restore Database
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="restore_media" name="restore_media" checked>
+                            <label class="form-check-label" for="restore_media">
+                                Restore Media Files
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="restore_notes" class="form-label">Notes (Optional)</label>
+                        <textarea class="form-control" id="restore_notes" name="notes" rows="2" 
+                                  placeholder="Add any notes about this restore operation..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-warning">
+                        <i class="fas fa-undo me-1"></i>Restore
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Delete Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Delete Backup</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete the backup "<strong>{{ backup.name }}</strong>"?</p>
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    This action cannot be undone. The backup file will be permanently deleted.
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form method="post" action="{% url 'backup:delete_backup' backup.id %}" class="d-inline">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-trash me-1"></i>Delete
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    // Auto-refresh if backup is in progress
+    {% if backup.status == 'in_progress' %}
+    setInterval(function() {
+        location.reload();
+    }, 10000); // Refresh every 10 seconds for in-progress backups
+    {% endif %}
+});
+</script>
+{% endblock %}
