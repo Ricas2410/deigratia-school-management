@@ -651,8 +651,36 @@
         }
     }
 
-    /* Desktop */
+    /* Medium screens - 3 cards */
+    @media (min-width: 768px) {
+        .news-grid {
+            grid-template-columns: repeat(3, 1fr);
+        }
+    }
+
+    /* Large screens - 4 cards */
     @media (min-width: 992px) {
+        .news-grid {
+            grid-template-columns: repeat(4, 1fr);
+        }
+
+        .news-card-image {
+            height: 180px;
+        }
+
+        .news-card-content {
+            padding: 1rem;
+        }
+
+        .news-card-title {
+            font-size: 1rem;
+            line-height: 1.3;
+        }
+
+        .news-card-excerpt {
+            font-size: 0.875rem;
+        }
+
         .news-hero {
             height: 350px;
         }
@@ -673,6 +701,30 @@
 
         .social-buttons {
             grid-template-columns: repeat(2, 1fr);
+        }
+    }
+
+    /* Extra large screens - 5 cards */
+    @media (min-width: 1400px) {
+        .news-grid {
+            grid-template-columns: repeat(5, 1fr);
+        }
+
+        .news-card-image {
+            height: 160px;
+        }
+
+        .news-card-content {
+            padding: 0.875rem;
+        }
+
+        .news-card-title {
+            font-size: 0.95rem;
+            line-height: 1.25;
+        }
+
+        .news-card-excerpt {
+            font-size: 0.8rem;
         }
     }
 </style>
