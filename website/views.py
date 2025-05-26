@@ -8,7 +8,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.core.mail import send_mail
 from django.conf import settings
 from .models import (
-    HeroSlide, Announcement, Event, StaffMember,
+    HeroSlide, Announcement, Event, StaffMember, 
     Testimonial, GalleryImage, MontessoriItem, Application
 )
 from .forms import ApplicationForm, ContactForm
@@ -20,7 +20,7 @@ def home(request):
         'hero_slides': HeroSlide.objects.filter(is_active=True)[:5],
         'announcements': Announcement.objects.filter(is_active=True, is_featured=True)[:3],
         'upcoming_events': Event.objects.filter(
-            is_active=True,
+            is_active=True, 
             date__gte=timezone.now()
         ).order_by('date')[:3],
         'testimonials': Testimonial.objects.filter(is_active=True, is_featured=True)[:3],
@@ -51,7 +51,7 @@ def admissions(request):
         if form.is_valid():
             application = form.save()
             messages.success(request, 'Your application has been submitted successfully!')
-
+            
             # Send confirmation email
             try:
                 send_mail(
@@ -63,11 +63,11 @@ def admissions(request):
                 )
             except Exception:
                 pass
-
+            
             return redirect('website:admissions')
     else:
         form = ApplicationForm()
-
+    
     return render(request, 'website/admissions.html', {'form': form})
 
 
@@ -88,11 +88,11 @@ def contact(request):
                 messages.success(request, 'Your message has been sent successfully!')
             except Exception:
                 messages.error(request, 'There was an error sending your message. Please try again.')
-
+            
             return redirect('website:contact')
     else:
         form = ContactForm()
-
+    
     return render(request, 'website/contact.html', {'form': form})
 
 
@@ -102,7 +102,7 @@ def events(request):
     paginator = Paginator(events_list, 12)
     page_number = request.GET.get('page')
     events_page = paginator.get_page(page_number)
-
+    
     return render(request, 'website/events.html', {'events': events_page})
 
 
@@ -124,14 +124,14 @@ def gallery(request):
     paginator = Paginator(images_list, 12)
     page_number = request.GET.get('page')
     images_page = paginator.get_page(page_number)
-
-    return render(request, 'website/gallery.html', {'galleries': images_page})
+    
+    return render(request, 'website/gallery.html', {'images': images_page})
 
 
 def gallery_detail(request, pk):
     """Gallery image detail page"""
-    gallery = get_object_or_404(GalleryImage, pk=pk, is_active=True)
-    return render(request, 'website/gallery_detail.html', {'gallery': gallery})
+    image = get_object_or_404(GalleryImage, pk=pk, is_active=True)
+    return render(request, 'website/gallery_detail.html', {'image': image})
 
 
 def staff_list(request):
@@ -146,7 +146,7 @@ def news(request):
     paginator = Paginator(announcements_list, 10)
     page_number = request.GET.get('page')
     announcements_page = paginator.get_page(page_number)
-
+    
     return render(request, 'website/news.html', {'announcements': announcements_page})
 
 
@@ -156,7 +156,7 @@ def calendar(request):
         is_active=True,
         date__gte=timezone.now()
     ).order_by('date')
-
+    
     return render(request, 'website/calendar.html', {'upcoming_events': upcoming_events})
 
 
