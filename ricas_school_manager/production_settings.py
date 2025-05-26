@@ -46,8 +46,9 @@ MIDDLEWARE = [
 ]
 
 # Static files configuration for production
-STATIC_ROOT = '/home/deigratiams/deigratia-school-management/staticfiles'
-MEDIA_ROOT = '/home/deigratiams/deigratia-school-management/media'
+# Use environment variable or fallback to base directory
+STATIC_ROOT = config('STATIC_ROOT', default=str(BASE_DIR / 'staticfiles'))
+MEDIA_ROOT = config('MEDIA_ROOT', default=str(BASE_DIR / 'media'))
 
 # WhiteNoise configuration
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
@@ -101,7 +102,7 @@ LOGGING = {
         'file': {
             'level': 'INFO',
             'class': 'logging.FileHandler',
-            'filename': '/home/deigratiams/deigratia-school-management/django.log',
+            'filename': config('LOG_FILE', default=str(BASE_DIR / 'django.log')),
             'formatter': 'verbose',
         },
         'console': {
