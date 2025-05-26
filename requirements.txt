@@ -28,3 +28,4 @@ zopfli==0.2.3.post1
 python-decouple==3.8
 whitenoise==6.8.2
 gunicorn==23.0.0
+APScheduler==3.10.4
