@@ -56,12 +56,9 @@
 
         <div class="row">
             <div class="col-lg-8 mx-auto text-center">
-                <span class="category-badge mb-3">
-                    <i class="fas fa-folder me-2"></i>{{ gallery.get_category_display }}
-                </span>
                 <h1 class="mb-3">{{ gallery.title }}</h1>
                 <div class="date-badge mb-4">
-                    <i class="far fa-calendar-alt me-2"></i>{{ gallery.date_added|date:"F d, Y" }}
+                    <i class="far fa-calendar-alt me-2"></i>{{ gallery.created_at|date:"F d, Y" }}
                 </div>
                 {% if gallery.description %}
                 <div class="gallery-description">

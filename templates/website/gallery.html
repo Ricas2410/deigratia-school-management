@@ -66,23 +66,9 @@
     }
 </style>
 
-<!-- Gallery Categories -->
+<!-- Gallery Content -->
 <section class="py-4">
     <div class="container">
-        <div class="row justify-content-center mb-4">
-            <div class="col-12 text-center">
-                <div class="gallery-filter-container">
-                    <a href="{% url 'website:gallery' %}" class="filter-chip {% if not request.GET.category %}active{% endif %}">
-                        <span>All</span>
-                    </a>
-                    {% for category in categories %}
-                    <a href="?category={{ category }}" class="filter-chip {% if request.GET.category == category %}active{% endif %}">
-                        <span>{{ category|title }}</span>
-                    </a>
-                    {% endfor %}
-                </div>
-            </div>
-        </div>
 
         <!-- Gallery Grid -->
         <div class="gallery-grid">
@@ -97,7 +83,12 @@
                         {% if image.description %}
                         <p class="gallery-description">{{ image.description|truncatechars:100 }}</p>
                         {% endif %}
-                        <span class="gallery-category">{{ image.category|title }}</span>
+                        <div class="gallery-meta">
+                            <small class="text-muted">
+                                <i class="far fa-calendar-alt me-1"></i>
+                                {{ image.created_at|date:"M d, Y" }}
+                            </small>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -115,7 +106,7 @@
         <nav aria-label="Gallery pagination" class="mt-4">
             <div class="pagination-container">
                 {% if page_obj.has_previous %}
-                <a class="pagination-btn prev" href="?page={{ page_obj.previous_page_number }}{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}" aria-label="Previous">
+                <a class="pagination-btn prev" href="?page={{ page_obj.previous_page_number }}" aria-label="Previous">
                     <i class="fas fa-chevron-left"></i> Previous
                 </a>
                 {% else %}
@@ -129,13 +120,13 @@
                     {% if page_obj.number == num %}
                     <span class="pagination-number active">{{ num }}</span>
                     {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
-                    <a class="pagination-number" href="?page={{ num }}{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}">{{ num }}</a>
+                    <a class="pagination-number" href="?page={{ num }}">{{ num }}</a>
                     {% endif %}
                     {% endfor %}
                 </div>
 
                 {% if page_obj.has_next %}
-                <a class="pagination-btn next" href="?page={{ page_obj.next_page_number }}{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}" aria-label="Next">
+                <a class="pagination-btn next" href="?page={{ page_obj.next_page_number }}" aria-label="Next">
                     Next <i class="fas fa-chevron-right"></i>
                 </a>
                 {% else %}
@@ -329,13 +320,14 @@
     margin-bottom: 12px;
 }
 
-.gallery-category {
-    display: inline-block;
-    padding: 4px 10px;
-    background-color: #f0f0f0;
-    border-radius: 50px;
+.gallery-meta {
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px solid #eee;
+}
+
+.gallery-meta small {
     font-size: 0.8rem;
-    color: #555;
 }
 
 .empty-gallery {
