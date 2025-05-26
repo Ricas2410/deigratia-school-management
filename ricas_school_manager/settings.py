@@ -194,16 +194,16 @@ CURRENT_YEAR = datetime.now().year
 ACADEMIC_YEARS = [str(year) for year in range(CURRENT_YEAR - 1, CURRENT_YEAR + 5)]
 ACADEMIC_TERMS = ["First Term", "Second Term", "Third Term"]
 
-# Email settings
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+# Email settings - Uses custom backend that gets settings from SchoolSettings model
+EMAIL_BACKEND = 'users.backends.SchoolEmailBackend'
+ALTERNATIVE_EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+
+# Default fallback settings (will be overridden by SchoolSettings)
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_HOST_USER = 'skillnetservices@gmail.com'
 DEFAULT_FROM_EMAIL = 'skillnetservices@gmail.com'
-
-# For security, set this in environment variable or local_settings.py
-# EMAIL_HOST_PASSWORD = 'your-app-password-here'
 
 # Try to import local settings if they exist
 try:
